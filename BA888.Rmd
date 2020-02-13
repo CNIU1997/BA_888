@@ -1,0 +1,205 @@
+---
+title: "BA 888"
+author: "Team1"
+date: "2/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Library Packages
+```{r message=FALSE}
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(skimr)
+library(ggplot2)
+library(corrplot)
+library(RColorBrewer)
+```
+
+## Data Importing
+```{r message=FALSE}
+dat_14 <- read_csv("2014_Financial_Data.csv")
+dat_15 <- read_csv("2015_Financial_Data.csv")
+dat_16 <- read_csv("2016_Financial_Data.csv")
+dat_17 <- read_csv("2017_Financial_Data.csv")
+dat_18 <- read_csv("2018_Financial_Data.csv")
+```
+
+## Data Inspections
+```{r warning=FALSE}
+glimpse(dat_14)
+glimpse(dat_15)
+glimpse(dat_16)
+glimpse(dat_17)
+glimpse(dat_18)
+```
+
+## Data Column Renaming
+```{r message=FALSE}
+colnames(dat_14) = tolower(gsub(" ", "_", colnames(dat_14)))
+colnames(dat_15) = tolower(gsub(" ", "_", colnames(dat_15)))
+colnames(dat_16) = tolower(gsub(" ", "_", colnames(dat_16)))
+colnames(dat_17) = tolower(gsub(" ", "_", colnames(dat_17)))
+colnames(dat_18) = tolower(gsub(" ", "_", colnames(dat_18)))
+(dat_14)[duplicated(colnames(dat_14))]
+dat_14$niperebt<- NULL
+dat_14$ebtperebit<- NULL
+dat_14$ebitperrevenue<- NULL
+duplicated(colnames(dat_14))
+```
+
+## Add extra Column
+```{r message=FALSE}
+dat_14$year <- 2014
+dat_15$year <- 2015
+dat_16$year <- 2016
+dat_17$year <- 2017
+dat_18$year <- 2018
+```
+
+## Select numeric data
+```{r}
+select_if(dat_14,is.numeric) -> dat2_14
+```
+
+## Exploratory dataset analysis 
+```{r}
+dat2_14 %>% 
+  cor(use="pairwise.complete.obs") -> cor_numVar
+head(cor_numVar,2)
+
+as.matrix(sort(cor_numVar[,"2015_price_var_[%]"], decreasing = TRUE)) -> cor_sorted
+CorHigh <- names(which(apply(cor_sorted, 1, function(x) abs(x)>0.01)))
+cor_numVar <- cor_numVar[CorHigh, CorHigh]
+corrplot.mixed(cor_numVar,tl.col="black", tl.pos = "lt", tl.cex = 0.7,cl.cex = 0.7, number.cex=0.7)
+
+dat2_14$`R&D_Expenses`
+```
+
+## Look at some (17) important variables 
+```{r}
+summary(dat_14)
+
+dat_14 %>% 
+  select(starts_with("revenue"), class) %>% 
+  na.omit %>% 
+  group_by(class) %>% 
+  summarise( mean_Revenue = mean(revenue),
+             mean_Revenue_Growth = mean(revenue_growth),
+             mean_Revenue_per_Share = mean(revenue_per_share))
+
+
+# dat_14 %>% 
+#   select(ends_with("expenses"), class) %>% 
+#   na.omit %>% 
+#   group_by(class) %>% 
+#   summarise( mean_RD_Expenses= mean(`r&d_expenses`),
+#              mean_Operating_Expenses = mean(`operating_expenses`)) %>% 
+#   ggplot()+
+#   geom_bar(aes(factor(class),mean_expense), stat = "identity",fill="#005b5e")+
+#   labs(
+#     x="Class",
+#     y="Average Expense"
+#   )+coord_flip()
+
+### Error: object 'mean_expense' not found
+
+
+dat_14 %>% 
+  select(ends_with("value"), class) %>% 
+  na.omit %>% 
+  group_by(class) %>% 
+  summarise( mean_eenterprise_value= mean(enterprise_value),
+             mean_tangible_asset_value = mean(tangible_asset_value))
+
+dat_14 %>% 
+  select(starts_with("debt"), class) %>% 
+  na.omit %>% 
+  group_by(class) %>% 
+  summarise( mean_debtratio= mean(debtratio),
+             mean_debtequityratio = mean(debtequityratio),
+             mean_debt_to_assets = mean(debt_to_assets),
+             mean_debt_growth = mean(debt_growth))
+
+dat_14 %>%  
+  group_by(class) %>% 
+  count
+
+dat_14 %>% 
+  select(starts_with("revenue"), class) %>% 
+  na.omit %>% 
+  group_by(class) %>% 
+  ggplot()+
+  geom_boxplot(aes(factor(class),revenue, group=class),color="#005b5e")+
+  labs(
+    x="Class"
+  )
+
+dat_14 %>% 
+  ggplot()+
+  geom_bar(aes(factor(class)), fill = "#005b5e")+
+  labs(
+    title="Distribution of Buy-worthy and Not Buy-worthy Stocks",
+    x = "Class",
+    y = "Number of Stocks"
+  )
+```
+
+## Data selection
+```{r}
+dat_14<-dat_14[,!duplicated(colnames(dat_14))]
+data<-dat_14%>%
+  select(year,x1,revenue,revenue_growth,gross_profit,eps,eps_growth,dividend_per_share,dividends_per_share_growth,
+         operating_cash_flow,free_cash_flow_growth,free_cash_flow_growth,pricefairvalue,enterprise_value,debt_to_assets,
+         debt_growth,asset_growth,`2015_price_var_[%]`)
+```
+
+##
+```{r}
+par(mfrow=c(2,3))
+boxplot(dat_14$revenue_growth,xlab="revenue")
+boxplot(dat_14$eps_growth,xlab="eps")
+boxplot(dat_14$dividends_per_share_growth,xlab="dividend/share")
+boxplot(dat_14$free_cash_flow_growth,xlab="free.cash.flow")
+boxplot(dat_14$debt_growth,xlab="debt")
+boxplot(dat_14$asset_growth,xlab="asset")
+```
+
+## Plot sector distribution
+```{r}
+dat_14 %>% 
+  ggplot()+
+  geom_bar(aes(factor(sector)), fill = "#005b5e")+
+  labs(
+    title="Distribution of different industry sector of Stocks",
+    x = "Sector",
+    y = "Number of Stocks"
+  )
+```
+
+## sector yearly percentage price variation of stock
+```{r}
+sector_names<- unique(dat_14$sector)
+
+for (names in sector_names){
+  temp_plot<-ggplot(subset(dat_14,sector==names),
+                    aes(y=`2015_price_var_[%]`,x=factor(class)))+
+    geom_point(position = "jitter", alpha= 0.5)+
+    geom_violin()+
+  scale_y_continuous("Yearly Percentage Price Variation of Stock",labels = scales::percent)+
+  scale_x_discrete("Recommendations", labels=c("1"="Buy","0"="Not Buy"))+
+    ggtitle(paste(toupper(names),"SECTOR",sep = " " ))+
+    coord_flip()
+  
+   png(paste(names, "_sector_plot",".png", sep = ""), width=2000, height=1243, res=120)
+   
+   print(temp_plot)
+   
+   dev.off()
+}
+```
+
