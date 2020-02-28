@@ -178,8 +178,14 @@ dat_14 %>%
     title="Distribution of different industry sector of Stocks",
     x = "Sector",
     y = "Number of Stocks"
+  )+
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.title.x = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        axis.text.x = element_text(size = 10, angle = 15)
   )
 ```
+
 
 ## sector yearly percentage price variation of stock
 ```{r}
@@ -190,16 +196,22 @@ for (names in sector_names){
                     aes(y=`2015_price_var_[%]`,x=factor(class)))+
     geom_point(position = "jitter", alpha= 0.5)+
     geom_violin()+
-  scale_y_continuous("Yearly Percentage Price Variation of Stock",labels = scales::percent)+
-  scale_x_discrete("Recommendations", labels=c("1"="Buy","0"="Not Buy"))+
+    scale_y_continuous("Yearly Percentage Price Variation of Stock",labels = scales::percent)+
+    scale_x_discrete("Recommendations", labels=c("1"="Buy","0"="Not Buy"))+
     ggtitle(paste(toupper(names),"SECTOR",sep = " " ))+
-    coord_flip()
+    coord_flip()+
+    theme(plot.title = element_text(size = 31, hjust = 0.5),
+          axis.title.x = element_text(size = 20),
+          axis.title.y = element_text(size = 20),
+          axis.text.x = element_text(size = 15),
+          axis.text.y = element_text(size = 15) 
+    )
   
-   png(paste(names, "_sector_plot",".png", sep = ""), width=2000, height=1243, res=120)
-   
-   print(temp_plot)
-   
-   dev.off()
+  png(paste(names, "_sector_plot",".png", sep = ""), width=2000, height=1243, res=120)
+  
+  print(temp_plot)
+  
+  dev.off()
 }
 ```
 
