@@ -7,6 +7,8 @@ library(corrplot)
 library(RColorBrewer)
 library(edgar)
 library(edgarWebR)
+library("knitr")
+
 
 dat_14 <- read_csv("2014_Financial_Data.csv")
 dat_15 <- read_csv("2015_Financial_Data.csv")
@@ -28,6 +30,8 @@ dat_16$year <- 2016
 dat_17$year <- 2017
 dat_18$year <- 2018
 
+dat_14 %>% 
+  names
 
 #################################Cleaning 
 # replace NA with 0 for all numeric values
@@ -51,8 +55,8 @@ boxplot(dat_14$returnOnAssets)$out -> outVlaues
 ################################################################
 
 # #exploratory dataset analysis 
-# select_if(dat_14,is.numeric) -> dat2_14
-# 
+select_if(dat_14,is.numeric) -> dat2_14
+
 # dat2_14 %>% 
 #   cor(use="pairwise.complete.obs") -> cor_numVar
 # head(cor_numVar,2)
@@ -66,13 +70,14 @@ boxplot(dat_14$returnOnAssets)$out -> outVlaues
 # ####look at some (17) important variables 
 # summary(dat_14)
 # 
-# dat_14 %>% 
-#   select(starts_with("Revenue"), Class) %>% 
-#   na.omit %>% 
-#   group_by(Class) %>% 
+# dat_14 %>%
+#   select(starts_with("Revenue"), Class) %>%
+#   na.omit %>%
+#   group_by(Class) %>%
 #   summarise( mean_Revenue = mean(Revenue),
 #              mean_Revenue_Growth = mean(Revenue_Growth),
-#              mean_Revenue_per_Share = mean(Revenue_per_Share))
+#              mean_Revenue_per_Share = mean(Revenue_per_Share)) %>% 
+#   kable()
 # 
 # 
 # dat_14 %>% 
@@ -88,20 +93,22 @@ boxplot(dat_14$returnOnAssets)$out -> outVlaues
 #     y="Average Expense"
 #   )+coord_flip()
 # 
-# dat_14 %>% 
-#   select(ends_with("value"), Class) %>% 
-#   na.omit %>% 
-#   group_by(Class) %>% 
+# dat_14 %>%
+#   select(ends_with("value"), Class) %>%
+#   na.omit %>%
+#   group_by(Class) %>%
 #   summarise( mean_Eenterprise_Value= mean(Enterprise_Value),
-#              mean_Tangible_Asset_Value = mean(Tangible_Asset_Value))
-# dat_14 %>% 
-#   select(starts_with("debt"), Class) %>% 
-#   na.omit %>% 
-#   group_by(Class) %>% 
+#              mean_Tangible_Asset_Value = mean(Tangible_Asset_Value)) %>% 
+#   kable()
+# dat_14 %>%
+#   select(starts_with("debt"), Class) %>%
+#   na.omit %>%
+#   group_by(Class) %>%
 #   summarise( mean_debtRatio= mean(debtRatio),
 #              mean_debtEquityRatio = mean(debtEquityRatio),
 #              mean_Debt_to_Assets = mean(Debt_to_Assets),
-#              mean_Debt_Growth = mean(Debt_Growth))
+#              mean_Debt_Growth = mean(Debt_Growth)) %>% 
+#   kable()
 # 
 # dat_14 %>%  
 #   group_by(Class) %>% 
@@ -147,7 +154,7 @@ dat2_14 %>%
 #apply(dat2_14, 2, var, na.rm=TRUE) > 0 -> GET
 
 
-##########pca
+##################################pca
 library(arules)
 library(arulesViz)
 library(corrplot)
@@ -188,27 +195,8 @@ plot(x,wass, type ="b")#wss- no useful suggestion
 fviz_nbclust(c_scale, kmeans, method = 'silhouette', k.max = 20)##silhouette suggests 6 clusters
 #2/5 excellent 
 
-########################split train test
-smp_size <- floor(0.8 * nrow(dat2_14))
 
-## set the seed to make your partition reproducible
-set.seed(123)
-train_ind <- sample(seq_len(nrow(dat2_14)), size = smp_size)
-
-train <- dat2_14[train_ind,] %>% select(-Class,-"2015_PRICE_VAR_[%]") %>%  as.matrix()  #3046 221
-test <- dat2_14[-train_ind, ] %>% select(-Class,-"2015_PRICE_VAR_[%]") %>%  as.matrix() #762 221
-train.label <- dat2_14[train_ind,] %>% select(Class) %>% as.matrix()
-test.label <- dat2_14[-train_ind,] %>% select(Class) %>% as.matrix()
-  
-dtrain <- xgb.DMatrix(data = train, label= train.label)
-dtest <- xgb.DMatrix(data = test, label= test.label)
-
-
-
-
-# train %>% dim
-# test %>% dim
-##### randomforest 
+##################################randomforest 
 library(randomForest)
 require(caTools)
 rf <- randomForest(
@@ -223,8 +211,9 @@ pred = predict(rf, newdata=test[-221])
 #get index of Class
 grep("Class", colnames(test))
 
-#######
+##################################ridge
 library(glmnet)
+
 
 y <- dat2_14 %>% select("2015_PRICE_VAR_[%]") %>% unlist() %>%
   as.numeric()
@@ -233,7 +222,7 @@ x <- dat2_14 %>% select(-Class,-"2015_PRICE_VAR_[%]") %>% data.matrix()
 
 fit <- glmnet(x, y, alpha = 0, lambda = lambdas)
 summary(fit)
-#ridge
+
 lambdas = 10^seq(10, -2, length = 100)
 cv_fit <- cv.glmnet(x, y, alpha = 0, lambda = lambdas)
 plot(cv_fit)
@@ -246,8 +235,23 @@ sse <- sum((y_predicted - y)^2)
 rsq <- 1 - sse / sst
 rsq
 
-### xgboost
+##################################xgboost
 library(xgboost)
+############split train test
+smp_size <- floor(0.8 * nrow(dat2_14))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(dat2_14)), size = smp_size)
+
+train <- dat2_14[train_ind,] %>% select(-Class,-"2015_PRICE_VAR_[%]") %>%  as.matrix()  #3046 221
+test <- dat2_14[-train_ind, ] %>% select(-Class,-"2015_PRICE_VAR_[%]") %>%  as.matrix() #762 221
+train.label <- dat2_14[train_ind,] %>% select(Class) %>% as.matrix()
+test.label <- dat2_14[-train_ind,] %>% select(Class) %>% as.matrix()
+
+dtrain <- xgb.DMatrix(data = train, label= train.label)
+dtest <- xgb.DMatrix(data = test, label= test.label)
+
 # Train the XGBoost classifer
 # train a model using our training data
 model <- xgboost(data = dtrain, # the data   
@@ -261,7 +265,7 @@ pred <- predict(model, dtest)
 err <- mean(as.numeric(pred > 0.5) != test.label)
 print(paste("test-error=", err))
 
-
+###########################################################dat_14 explory ends
 
 
 
