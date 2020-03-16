@@ -52,4 +52,6 @@ train_data %>%
 
 test_data %>% mutate_all(~replace(.,is.na(.),0)) -> test_data
 
-
+### write train/test data in csv
+write.csv(train_data, "train_data.csv")
+write.csv(test_data, "test_data.csv")
