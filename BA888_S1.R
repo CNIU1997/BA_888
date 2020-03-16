@@ -9,7 +9,6 @@ library(edgar)
 library(edgarWebR)
 library("knitr")
 
-
 dat_14 <- read_csv("2014_Financial_Data.csv")
 dat_15 <- read_csv("2015_Financial_Data.csv")
 dat_16 <- read_csv("2016_Financial_Data.csv")
@@ -23,6 +22,21 @@ colnames(dat_16) = gsub(" ", "_", colnames(dat_16))
 colnames(dat_17) = gsub(" ", "_", colnames(dat_17))
 colnames(dat_18) = gsub(" ", "_", colnames(dat_18))
 
+dat_14 <- dat_14 %>% 
+  mutate(  'PRICE_VAR' = `2015_PRICE_VAR_[%]` ) 
+
+dat_15 <- dat_15 %>% 
+  mutate(  'PRICE_VAR' = `2016_PRICE_VAR_[%]` ) 
+
+dat_16 <- dat_16 %>% 
+  mutate(  'PRICE_VAR' = `2017_PRICE_VAR_[%]` ) 
+
+dat_17 <- dat_17 %>% 
+  mutate(  'PRICE_VAR' = `2018_PRICE_VAR_[%]` ) 
+
+dat_18 <- dat_18 %>% 
+  mutate(  'PRICE_VAR' = `2019_PRICE_VAR_[%]` ) 
+
 #add year column to each data set 
 dat_14$year <- 2014
 dat_15$year <- 2015
@@ -30,8 +44,26 @@ dat_16$year <- 2016
 dat_17$year <- 2017
 dat_18$year <- 2018
 
-dat_14 %>% 
-  names
+
+
+
+
+
+
+############################# merge 2014-2017 as train, 2018 as test
+
+
+data <- merge(dat_14,dat_15, by ="X1", all = T) %>% 
+  merge(dat_16,by ="X1", all = T) %>% 
+  merge(dat_17, by ="X1", all = T)
+
+
+
+dat_15[,(names(dat_14) == names(dat_15)) == FALSE]
+
+
+
+###########################
 
 #################################Cleaning 
 # replace NA with 0 for all numeric values
@@ -268,7 +300,10 @@ print(paste("test-error=", err))
 ###########################################################dat_14 explory ends
 
 
-
+#####################################outliers 
+## outliers
+source("http://goo.gl/UUyEzD")
+outlierKD(test_data, Revenue)
 
 
 
