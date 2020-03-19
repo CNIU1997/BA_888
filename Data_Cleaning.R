@@ -40,9 +40,9 @@ dat_17$year <- 2017
 dat_18$year <- 2018
 
 ##combine data from 2014 to 2017 as train_data, 208 as test_data 
-train_data <- rbind(dat_14, dat_15, by = "X1") %>% 
-  rbind(dat_16,by ="X1", all = T) %>%
-  rbind(dat_17, by ="X1", all = T)
+train_data <- rbind.data.frame(dat_14, dat_15, by = "X1",stringsAsFactors = FALSE) %>% 
+  rbind.data.frame(dat_16,by ="X1", all = T,stringsAsFactors = FALSE) %>%
+  rbind.data.frame(dat_17, by ="X1", all = T,stringsAsFactors = FALSE)
 
 test_data <- dat_18
 
@@ -53,5 +53,5 @@ train_data %>%
 test_data %>% mutate_all(~replace(.,is.na(.),0)) -> test_data
 
 ### write train/test data in csv
-write.csv(train_data, "train_data.csv")
-write.csv(test_data, "test_data.csv")
+# write.csv(train_data, "train_data.csv")
+# write.csv(test_data, "test_data.csv")
