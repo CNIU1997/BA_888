@@ -34,6 +34,7 @@ c_pcs <- as.data.frame(c_pcs)
 
 ##using 3 conponents
 c_pca3 <- c_pcs[,1:3]
+c_pca2 <- c_pcs[,1:2]
 
 #k-mean using pca(3)
 c_scale <- scale(c_pca3)
@@ -54,7 +55,7 @@ plot(x,wass, type ="b") # 4
 fviz_nbclust(c_scale, kmeans, method = 'silhouette', k.max = 20)#silhouette suggests 2 clusters
 
 #Kmeans k of 2/3/4/5/6
-# pca_k2 <- kmeans(c_scale,2,25,30)
+pca_k2 <- kmeans(c_scale,2,25,30)
 # pca_k3 <- kmeans(c_scale,3,25,30)
 # pca_k4 <- kmeans(c_scale,4,25,30)
 # pca_k5 <- kmeans(c_scale,5,25,30)
