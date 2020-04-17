@@ -4,6 +4,8 @@ library(ggplot2)
 library(dplyr)
 library(Boruta)
 library(Amelia)
+library(RColorBrewer)
+library(aplot)
 ##
 read_file<- read.csv("train_data.csv")
 str(read_file)
@@ -42,9 +44,9 @@ ggplot_missing(read_file)
 ## set seeds for reproduction
 set.seed(888)
 ## feature selections 
-boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,227)], doTrace = 3)# don't even try to run it, take forever
+boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3)# don't even try to run it, take forever
 
-## boruta_stock_train_extra <- Boruta(Class~., data =read_file[-c(1,2,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
+boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
 
 print(boruta_stock_train)
 boruta_stock_train$finalDecision[boruta_stock_train$finalDecision[]=="Confirmed"]
@@ -61,16 +63,20 @@ print(boruta_stock)
 ##Plot out results
 ## The y axis label Importance represents the Z score of every feature in the shuffled dataset.
 ## The blue boxplots correspond to minimal, average and maximum Z score of a shadow feature, 
-## while the red and green boxplots represent Z scores of rejected and confirmed features, respectively. 
-## As you can see the red boxplots have lower Z score than that of maximum Z score of shadow feature which is precisely 
+## while the orangered and lightblue boxplots represent Z scores of rejected and confirmed features, respectively. 
+## As you can see the orangered boxplots have lower Z score than that of maximum Z score of shadow feature which is precisely 
 ## the reason they were put in unimportant category.
-plot(boruta_stock, xlab = "", xaxt = "n")
+plot(boruta_stock, xlab = "", xaxt = "n",ylab = "Importance: Z-score", ylim=c(-5, 10),
+     main= " Z-score of every feature in the shuffled dataset",
+     col=c("grey","lightblue2","orangered")[as.numeric(boruta_stock$finalDecision)])
+legend("topleft", legend=unique(levels(boruta_stock$finalDecision)), pch=16, col=c("grey","lightblue2","orangered"))
+
 lz<-lapply(1:ncol(boruta_stock$ImpHistory),function(i)
   boruta_stock$ImpHistory[is.finite(boruta_stock$ImpHistory[,i]),i])
 names(lz) <- colnames(boruta_stock$ImpHistory)
 Labels <- sort(sapply(lz,median))
 axis(side = 1,las=2,labels = names(Labels),
-     at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.7)
+     at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.8,hadj =0.25)
 
 ##confirm the importance of the features
 getSelectedAttributes(boruta_stock, withTentative = F)
