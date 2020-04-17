@@ -8,6 +8,7 @@ library(RColorBrewer)
 library(aplot)
 ##
 read_file<- read.csv("train_data.csv")
+
 str(read_file)
 summary(read_file)
 
@@ -110,10 +111,12 @@ stock_df <- attStats(boruta_stock)
 stock_df_extra <- attStats(boruta_stock_extra)
 
 ## save results in the environment
-save.image(file='Boruta_feature_selection_results.RData')
+#save.image(file='Boruta_feature_selection_results.RData')
+save.image(file='Boruta_feature_selection_results_version1.RData')
 ## check if its in the current dictory
 dir()
 ## load pervious saved results
-load('Boruta_feature_selection_results.RData')
+#load('Boruta_feature_selection_results.RData')
+load('Boruta_feature_selection_results_version1.RData')
 
 
