@@ -45,12 +45,18 @@ ggplot_missing(read_file)
 set.seed(888)
 ## feature selections 
 boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3)# don't even try to run it, take forever
-
+#
 boruta_stock_train_extra <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
 
+#
 print(boruta_stock_train)
 boruta_stock_train$finalDecision[boruta_stock_train$finalDecision[]=="Confirmed"]
 length(boruta_stock_train$finalDecision[boruta_stock_train$finalDecision[]=="Confirmed"])
+#
+print(boruta_stock_train_extra)
+boruta_stock_train_extra$finalDecision[boruta_stock_train_extra$finalDecision[]=="Confirmed"]
+length(boruta_stock_train_extra$finalDecision[boruta_stock_train_extra$finalDecision[]=="Confirmed"])
+
 
 ## since we still have 64 tentative attributes left, let check these variables
 ## here Tentative features have an importance that is so close to their best shadow features that Boruta is not able to 
@@ -58,6 +64,9 @@ length(boruta_stock_train$finalDecision[boruta_stock_train$finalDecision[]=="Con
 #take a call on tentative features
 boruta_stock <- TentativeRoughFix(boruta_stock_train)
 print(boruta_stock)
+#
+boruta_stock_extra <- TentativeRoughFix(boruta_stock_train_extra)
+print(boruta_stock_extra)
 ## now boruta down it's work
 
 ##Plot out results
@@ -78,10 +87,27 @@ Labels <- sort(sapply(lz,median))
 axis(side = 1,las=2,labels = names(Labels),
      at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.8,hadj =0.25)
 
+#
+plot(boruta_stock_extra, xlab = "", xaxt = "n",ylab = "Importance: Z-score", ylim=c(-10, 20),
+     main= " Z-score of every feature in the shuffled dataset",
+     col=c("grey","lightblue2","orangered")[as.numeric(boruta_stock_extra$finalDecision)])
+legend("topleft", legend=unique(levels(boruta_stock_extra$finalDecision)), pch=16, col=c("grey","lightblue2","orangered"))
+
+lz<-lapply(1:ncol(boruta_stock_extra$ImpHistory),function(i)
+  boruta_stock_extra$ImpHistory[is.finite(boruta_stock_extra$ImpHistory[,i]),i])
+names(lz) <- colnames(boruta_stock_extra$ImpHistory)
+Labels <- sort(sapply(lz,median))
+axis(side = 1,las=2,labels = names(Labels),
+     at = 1:ncol(boruta_stock_extra$ImpHistory), cex.axis = 0.8,hadj =0.4)
+
 ##confirm the importance of the features
 getSelectedAttributes(boruta_stock, withTentative = F)
+#
+getSelectedAttributes(boruta_stock_extra, withTentative = F)
 ##store results into a dataframe
 stock_df <- attStats(boruta_stock)
+#
+stock_df_extra <- attStats(boruta_stock_extra)
 
 ## save results in the environment
 save.image(file='Boruta_feature_selection_results.RData')
