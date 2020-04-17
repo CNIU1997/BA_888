@@ -46,7 +46,7 @@ set.seed(888)
 ## feature selections 
 boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3)# don't even try to run it, take forever
 
-boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
+boruta_stock_train_extra <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
 
 print(boruta_stock_train)
 boruta_stock_train$finalDecision[boruta_stock_train$finalDecision[]=="Confirmed"]
