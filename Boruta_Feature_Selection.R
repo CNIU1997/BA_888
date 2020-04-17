@@ -99,7 +99,7 @@ lz<-lapply(1:ncol(boruta_stock_extra$ImpHistory),function(i)
 names(lz) <- colnames(boruta_stock_extra$ImpHistory)
 Labels <- sort(sapply(lz,median))
 axis(side = 1,las=2,labels = names(Labels),
-     at = 1:ncol(boruta_stock_extra$ImpHistory), cex.axis = 0.8,hadj =0.4)
+     at = 1:ncol(boruta_stock_extra$ImpHistory), cex.axis = 0.8,hadj =0.25)
 
 ##confirm the importance of the features
 getSelectedAttributes(boruta_stock, withTentative = F)
