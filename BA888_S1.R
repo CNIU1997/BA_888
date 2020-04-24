@@ -178,6 +178,7 @@ select_if(dat_14,is.numeric) -> dat2_14
 # info <- getFilingInfo('United Technologies', 1994) 
 # 
 ###########################################################dat_14 explory 
+#relationship analysis
 ggplot(data=dat_17,aes(x=dat_17$Effect_of_forex_changes_on_cash,y=dat_17$PRICE_VAR))+
   geom_point(size=0.01)+
   geom_smooth(method = "lm")+
