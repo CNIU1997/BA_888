@@ -227,6 +227,32 @@ plot(x,wass, type ="b")#wss- no useful suggestion
 fviz_nbclust(c_scale, kmeans, method = 'silhouette', k.max = 20)##silhouette suggests 6 clusters
 #2/5 excellent 
 
+##################################Forward Backward selection
+# select_names <- c( "Cash_and_cash_equivalents",             
+#                    "Effect_of_forex_changes_on_cash",       
+#                    "operatingCashFlowPerShare",             
+#                    "freeCashFlowPerShare",                  
+#                    "Graham_Number",                         
+#                    "Gross_Profit_Growth",                   
+#                    "Operating_Income_Growth",               
+#                    "EPS_Diluted_Growth",                    
+#                    "Weighted_Average_Shares_Growth",        
+#                    "Weighted_Average_Shares_Diluted_Growth",
+#                    "Operating_Cash_Flow_growth",            
+#                    "Receivables_growth",                    
+#                    "Inventory_Growth",                      
+#                    "Asset_Growth")
+# 
+# train_data[,names(train_data) %in% select_names] -> select_data
+# select_data$Price<-train_data$PRICE_VAR
+# fit1<-lm(Price~.,select_data)
+# backward=stepAIC(fit1,direction="backward")
+# summary(backward)
+# fit2<-lm(Price~1,select_data)
+# forward=stepAIC(fit2,direction = "forward",scope=list(upper=fit1,lower=fit2))
+# summary(forward)
+# combined=stepAIC(fit2,direction="both",scope=list(upper=fit1,lower=fit2))
+# summary(combined)
 
 ##################################randomforest 
 library(randomForest)
@@ -308,7 +334,7 @@ outlierKD(test_data, Revenue)
 
 
 
-### S1 updated
+
 
 
 
