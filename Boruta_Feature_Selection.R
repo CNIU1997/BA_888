@@ -132,14 +132,6 @@ stock_df <- attStats(boruta_stock)
 # 
 stock_df_extra <- attStats(boruta_stock_extra)
 
-## save results in the environment
-save.image(file='Boruta_feature_selection_results_version1.RData')
-## check if its in the current dictory
-dir()
-## load pervious saved results
-load('Boruta_feature_selection_results_version1.RData')
-
-
 ## test the selected variables performance 
 feature_selected <- cbind(variable = rownames(stock_df_extra), stock_df_extra)
 rownames(feature_selected) <- 1:nrow(feature_selected)
@@ -188,4 +180,10 @@ summary(classifier_1)
 predictions_1 <- predict(classifier_1,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
 confusionMatrix(factor(round(predictions_1)),factor(df_test['Class'][1:N_test,]))
 
+## save results in the environment
+save.image(file='Boruta_feature_selection_results_version1.RData')
+## check if its in the current dictory
+dir()
+## load pervious saved results
+load('Boruta_feature_selection_results_version1.RData')
 
