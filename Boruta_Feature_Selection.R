@@ -140,22 +140,25 @@ dir()
 load('Boruta_feature_selection_results_version1.RData')
 
 
-##
+## test the selected variables performance 
 feature_selected <- cbind(variable = rownames(stock_df_extra), stock_df_extra)
 rownames(feature_selected) <- 1:nrow(feature_selected)
 feature_selected %>% filter(decision=="Confirmed") %>% arrange(desc(meanImp))%>% filter(meanImp>7) %>% select(variable)# top27_features
 feature_selected %>% filter(decision=="Confirmed") %>% arrange(desc(meanImp))%>% filter(meanImp>6) %>% select(variable)# top57_features
 
+##load test dataset
+df_test<- read.csv("test_data.csv")
+glimpse(df_test)
+summary(df_test)
+
+##Check is there any duplicated columns 
 df_test$niperEBT==df_test$nIperEBT # same columns 
 df_test$eBTperEBIT== df_test$ebtperEBIT #Same columns
 df_test$Net_Income_Com== df_test$Net_Income ## Not the same columns 
 df_test$ priceToBookRatio== df_test$PB_ratio ## Not the same columns
 df_test$Net_Profit_Margin== df_test$netProfitMargin ## Not the same columns
-##
-df_test<- read.csv("test_data.csv")
-glimpse(df_test)
-summary(df_test)
-#top27 accuarcy : 0.6833 
+
+#top27 features  accuarcy : 0.6833 
 classifier <- glm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+
                     SG.A_to_Revenue+ priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+
                     Sector+ Gross_Profit_Growth+ EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+
@@ -168,7 +171,7 @@ N_test= nrow(df_test)
 predictions <- predict(classifier,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
 confusionMatrix(factor(round(predictions)),factor(df_test['Class'][1:N_test,]))
 
-#top 57 accuarcy: : 0.5162  
+#top57 features accuarcy: : 0.5162  
 classifier_1 <- glm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+ SG.A_to_Revenue+ 
                      priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+ Sector+ Gross_Profit_Growth+ 
                      EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+ eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+ 
