@@ -177,7 +177,20 @@ select_if(dat_14,is.numeric) -> dat2_14
 # 
 # info <- getFilingInfo('United Technologies', 1994) 
 # 
+###########################################################dat_14 explory 
+ggplot(data=dat_17,aes(x=dat_17$Effect_of_forex_changes_on_cash,y=dat_17$PRICE_VAR))+
+  geom_point(size=0.01)+
+  geom_smooth(method = "lm")+
+  coord_cartesian(ylim = c(0, 1000))
 
+ggplot(data=dat_17,aes(x=dat_17$Earnings_Yield,y=dat_17$PRICE_VAR))+
+  geom_point(size=0.01)+
+  geom_smooth(method = "lm")
+
+ggplot(data=dat_17,aes(x=dat_17$Weighted_Average_Shares_Diluted_Growth,y=dat_17$PRICE_VAR))+
+  geom_point(size=0.01)+
+  geom_smooth(method = "lm")+
+  coord_cartesian(ylim = c(0, 5000))
 ###########################################################dat_14 explory 
 select_if(dat_14,is.numeric) -> dat2_14
 dat2_14 %>% 
