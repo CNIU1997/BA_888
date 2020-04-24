@@ -185,3 +185,4 @@ summary(classifier_1)
 predictions_1 <- predict(classifier_1,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
 confusionMatrix(factor(round(predictions_1)),factor(df_test['Class'][1:N_test,]))
 
+
