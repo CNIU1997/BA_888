@@ -238,7 +238,7 @@ levels(predictions_2)
 confusionMatrix(predictions_2,df_test['Class'][1:N_test,])
 
 ## save results in the environment
-save.image(file='Boruta_feature_selection_results_version1.RData')
+# save.image(file='Boruta_feature_selection_results_version1.RData')
 ## check if its in the current dictory
 dir()
 ## load pervious saved results
@@ -246,7 +246,7 @@ load('Boruta_feature_selection_results_version1.RData')
 
 
 
-##
+## Plot AUC 
 df_test$Class<- df_test$Class %>% as.numeric()
 predictions_2<- predictions_2 %>% as.numeric()
 
