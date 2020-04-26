@@ -11,6 +11,7 @@ library(olsrr)
 library(party)
 library(relaimpo)
 library(pROC)
+library(ROCR)
 library(plyr)
 library(caret)
 library(VGAM)
@@ -244,11 +245,15 @@ dir()
 load('Boruta_feature_selection_results_version1.RData')
 
 
+
 ##
-pROC_obj <- roc(df$labels,df$predictions,
+df_test$Class<- df_test$Class %>% as.numeric()
+predictions_2<- predictions_2 %>% as.numeric()
+
+pROC_obj <- roc(df_test$Class,predictions_2,
                 smoothed = TRUE,
                 # arguments for ci
-                ci=TRUE, ci.alpha=0.9, stratified=FALSE,
+                ci=TRUE, ci.alpha=0.95, stratified=FALSE,
                 # arguments for plot
                 plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
                 print.auc=TRUE, show.thres=TRUE)
