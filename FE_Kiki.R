@@ -17,12 +17,49 @@ correlationMatrix <- cor(train[,1:222],use="complete.obs")
 # summarize the correlation matrix
 print(correlationMatrix)
 # find attributes that are highly corrected (ideally >0.75)
-highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.5)
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.2)
 # print indexes of highly correlated attributes
 print(highlyCorrelated)
 important_var=colnames(train[,-highlyCorrelated])
 important_var
 #######################################################
+
+select_names <- c('Revenue',
+                  'Gross_Profit',
+                  'Net_Income',
+                  'Net_Income_Com',
+                  'EPS_Diluted',
+                  'Weighted_Average_Shs_Out_(Dil)',
+                  'EBIT_Margin',
+                  'Profit_Margin',
+                  'Free_Cash_Flow_margin',
+                  'Consolidated_Income',
+                  'Net_Profit_Margin',
+                  'Cash_and_short-term_investments',
+                  'Total_non-current_assets',
+                  'Free_Cash_Flow',
+                  'priceEarningsToGrowthRatio',
+                  'ebitperRevenue',
+                  'niperEBT',
+                  'pretaxProfitMargin',
+                  'netProfitMargin',
+                  'returnOnAssets',
+                  'eBITperRevenue',
+                  'Return_on_Tangible_Assets',
+                  '3Y_Net_Income_Growth_(per_Share)',
+                  'Book_Value_per_Share_Growth')
+
+train[,names(train) %in% select_names] -> select_data
+
+correlationMatrix2 <- cor(select_data[,1:15],use="complete.obs")
+# summarize the correlation matrix
+print(correlationMatrix2)
+# find attributes that are highly corrected (ideally >0.75)
+highlyCorrelated2 <- findCorrelation(correlationMatrix2, cutoff=0.5)
+# print indexes of highly correlated attributes
+print(highlyCorrelated2)
+important_var2=colnames(select_data[,-highlyCorrelated2])
+important_var2
 
 ##############Feature Selection########################
 # ensure the results are repeatable
@@ -35,13 +72,13 @@ library(caret)
 # define the control using a random forest selection function
 control <- rfeControl(functions=rfFuncs, 
                       method="cv", 
-                      number=200)
+                      number=20)
 
 #deal with NAs before modeling 
 train <- na.omit(train)
 
 # run the RFE algorithm
-results <- rfe(train[,1:222], 
+results <- rfe(train[,1:50], 
                train$PRICE_VAR, 
                sizes=c(1:30), 
                rfeControl=control,
