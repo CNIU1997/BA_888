@@ -6,6 +6,9 @@ source("http://www.sthda.com/upload/rquery_cormat.r")
 require("corrplot")
 library(ggplot2) 
 library(GGally)
+library(xtable)
+library(readr)
+library(tidyverse)
 
 
 ## import dataset for crosstab
@@ -27,7 +30,9 @@ crosstab(eda,row.vars = c("Class","Sector"),col.vars = "year", type = "f")
 corr_eda<- read_csv("train_eda.csv")
 glimpse(corr_eda)
 corr_eda$Sector<- NULL
-my_data= corr_eda[, c(3,4,5,6,7,8,9,10)]
+corr_eda$Class<- NULL
+dim(corr_eda)
+my_data= corr_eda[,1:45]
 
 ##
 M <-cor(my_data)
@@ -37,3 +42,10 @@ rquery.cormat(my_data)
 ggpairs(my_data)
 
 ##Correlation matrix analysis
+mcor<-round(cor(my_data),2)
+mcor
+# Hide upper triangle
+upper<-mcor
+upper[upper.tri(mcor)]<-""
+upper<-as.data.frame(upper)
+upper
