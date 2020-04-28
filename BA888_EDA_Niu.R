@@ -2,8 +2,6 @@
 source("http://pcwww.liv.ac.uk/~william/R/crosstab.r")
 library(corrplot)
 library(RColorBrewer)
-source("http://www.sthda.com/upload/rquery_cormat.r")
-require("corrplot")
 library(ggplot2) 
 library(GGally)
 library(xtable)
@@ -26,20 +24,55 @@ crosstab(eda,row.vars = "Sector",col.vars = "Class", type = "f")
 crosstab(eda,row.vars = c("Class","Sector"),col.vars = "year", type = "f")
 
 
-## ## import dataset for correlation plot
+## import dataset for correlation plot
 corr_eda<- read_csv("train_eda.csv")
 glimpse(corr_eda)
 corr_eda$Sector<- NULL
 corr_eda$Class<- NULL
 dim(corr_eda)
-my_data= corr_eda[,1:45]
+
+select_names <- c('niperEBT',
+                  'Effect_of_forex_changes_on_cash',
+                  'Earnings_Yield',
+                  'effectiveTaxRate',
+                  'SG.A_to_Revenue',
+                  'priceFairValue',
+                  'Weighted_Average_Shares_Diluted_Growth',
+                  'EV_to_Free_cash_flow',
+                  'Gross_Profit_Growth',
+                  'EV_to_Operating_cash_flow',
+                  'Weighted_Average_Shares_Growth',
+                  'eBTperEBIT', 
+                  'assetTurnover',
+                  'EV_to_Sales',
+                  'Net_Income_Com',
+                  'Net_Income',
+                  'Enterprise_Value_over_EBITDA',
+                  'Revenue_Growth',
+                  'Operating_Cash_Flow_per_Share',
+                  'Inventory_Growth',
+                  'Earnings_Before_Tax_Margin',
+                  'operatingCashFlowPerShare', 
+                  'priceToOperatingCashFlowsRatio', 
+                  'POCF_ratio',
+                  'Free_Cash_Flow_Yield',
+                  'Consolidated_Income',
+                  'Profit_Margin',
+                  'priceToBookRatio',
+                  'PB_ratio',
+                  'priceBookValueRatio',
+                  'PTB_ratio')
+
+corr_eda[,names(corr_eda) %in% select_names] -> my_data
 
 ##
 M <-cor(my_data)
-corrplot(M, type="lower", order="hclust",
-         col=brewer.pal(n=9, name="Blues"))
-rquery.cormat(my_data)
-ggpairs(my_data)
+## Visualization of a correlation matrix for top 30 numerical variables"
+corrplot.mixed(M, lower = "circle", upper = "number",tl.pos = "lt",order="hclust",
+               addgrid.col = "black", pch.col="black",
+               lower.col = brewer.pal(n=9, name="Blues"),upper.col = brewer.pal(n=9, name="Blues"), 
+               tl.cex=1, number.cex=0.7,tl.col="black",tl.srt=45)
+#ggpairs(my_data) ##dont try to run it, it will bomb your local Rstudio
 
 ##Correlation matrix analysis
 mcor<-round(cor(my_data),2)
