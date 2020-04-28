@@ -32,6 +32,53 @@ corr_eda$Sector<- NULL
 corr_eda$Class<- NULL
 dim(corr_eda)
 
+#
+mcor<-round(cor(corr_eda),2)
+mcor
+
+which.names <- function(DF, value){
+  ind <- which(DF==value, arr.ind=TRUE)
+  print(paste(rownames(DF)[ind[,"row"]],  colnames(DF)[ind[,"col"]], sep=', '))
+}
+corr_1<- which.names(mcor,1)
+# 
+# "PB_ratio"+
+#   "PTB_ratio"+
+#   "priceToSalesRatio"+
+#   "PE_ratio"+
+#   "PFCF_ratio"+
+#   "POCF_ratio"+
+#   "ROE"+
+#   "payablesTurnover"+
+#   "inventoryTurnover"+
+#   "daysOfPayablesOutstanding"+
+#   "debtRatio"+
+#   "debtEquityRatio"+
+#   "interestCoverage"+
+#   "operatingCashFlowPerShare"+
+#   "freeCashFlowPerShare"+
+#   "cashPerShare"+
+#   "payoutRatio"
+
+# "PB_ratio",
+# "PTB_ratio",
+# "priceToSalesRatio",
+# "PE_ratio",
+# "PFCF_ratio",
+# "POCF_ratio",
+# "ROE",
+# "payablesTurnover",
+# "inventoryTurnover",
+# "daysOfPayablesOutstanding",
+# "debtRatio",
+# "debtEquityRatio",
+# "interestCoverage",
+# "operatingCashFlowPerShare",
+# "freeCashFlowPerShare",
+# "cashPerShare",
+# "payoutRatio"
+
+
 select_names <- c('niperEBT',
                   'Effect_of_forex_changes_on_cash',
                   'Earnings_Yield',
