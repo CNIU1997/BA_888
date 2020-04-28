@@ -19,6 +19,7 @@ eda$Class <- eda$Class[eda$Class != c("True","X1")]
 eda$Sector <- eda$Sector[eda$Sector != c("True","X1")]
 
 ## Frequency count
+crosstab(eda,col.vars = "Class",type = "f")
 crosstab(eda,row.vars = "Sector",col.vars = "Class", type = "f")
 ## Frequency count
 crosstab(eda,row.vars = c("Class","Sector"),col.vars = "year", type = "f")
@@ -62,6 +63,33 @@ select_names <- c('niperEBT',
                   'PB_ratio',
                   'priceBookValueRatio',
                   'PTB_ratio')
+# 25 variabels 
+# select_names <- c('niperEBT',
+#                   'Effect_of_forex_changes_on_cash',
+#                   'Earnings_Yield',
+#                   'effectiveTaxRate',
+#                   'SG.A_to_Revenue',
+#                   'priceFairValue',
+#                   'Weighted_Average_Shares_Diluted_Growth',
+#                   'EV_to_Free_cash_flow',
+#                   'Gross_Profit_Growth',
+#                   'EV_to_Operating_cash_flow',
+#                   'Weighted_Average_Shares_Growth',
+#                   'eBTperEBIT', 
+#                   'assetTurnover',
+#                   'EV_to_Sales',
+#                   'Net_Income_Com',
+#                   'Net_Income',
+#                   'Enterprise_Value_over_EBITDA',
+#                   'Revenue_Growth',
+#                   'Operating_Cash_Flow_per_Share',
+#                   'Inventory_Growth',
+#                   'Earnings_Before_Tax_Margin', 
+#                   'priceToOperatingCashFlowsRatio',
+#                   'Free_Cash_Flow_Yield',
+#                   'Profit_Margin',
+#                   'priceToBookRatio',
+#                   'priceBookValueRatio')
 
 corr_eda[,names(corr_eda) %in% select_names] -> my_data
 
