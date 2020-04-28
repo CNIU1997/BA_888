@@ -99,8 +99,20 @@ M <-cor(my_data)
 corrplot.mixed(M, lower = "circle", upper = "number",tl.pos = "lt",order="hclust",
                addgrid.col = "black", pch.col="black",
                lower.col = brewer.pal(n=9, name="Blues"),upper.col = brewer.pal(n=9, name="Blues"), 
-               tl.cex=1, number.cex=0.7,tl.col="black",tl.srt=45)
+               tl.cex=0.9, number.cex=0.5,tl.col="black",tl.srt=45)
 #ggpairs(my_data) ##dont try to run it, it will bomb your local Rstudio
+corrplot.mixed(corr_eda,lower = "circle", upper = "number",tl.pos = "lt",order="hclust",
+               addgrid.col = "black", pch.col="black",
+               lower.col = brewer.pal(n=9, name="Blues"),upper.col = brewer.pal(n=9, name="Blues"), 
+               tl.cex=1, number.cex=0.5,tl.col="black",tl.srt=45)
+
+##
+tmp = mcor # Copy matrix
+tmp[ tmp < -0.2 | tmp > 0.2 ] = 0
+corrplot.mixed(tmp,lower = "circle", upper = "number",tl.pos = "lt",order="hclust",
+               addgrid.col = "black", pch.col="black",
+               lower.col = brewer.pal(n=9, name="Blues"),upper.col = brewer.pal(n=9, name="Blues"), 
+               tl.cex=1, number.cex=0.5,tl.col="black",tl.srt=45,na.label = "NA")
 
 ##Correlation matrix analysis
 mcor<-round(cor(my_data),2)
@@ -110,3 +122,9 @@ upper<-mcor
 upper[upper.tri(mcor)]<-""
 upper<-as.data.frame(upper)
 upper
+
+upper<-tmp
+upper[upper.tri(tmp)]<-""
+upper<-as.data.frame(upper)
+upper
+dim(upper)
