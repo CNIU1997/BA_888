@@ -7,7 +7,7 @@ library(caret)
 library(tidyverse)
 # load the data
 train= read.csv('train_data.csv')
-
+test = read.csv('test_data.csv')
 ##############Remove Redundant Features################
 # calculate correlation matrix
 train %>% select(-X1,-X,-year,-Sector,-Class)-> train
@@ -90,3 +90,47 @@ predictors(results)
 # plot the results
 plot(results, type=c("g", "o"))
 ######################################################
+train[,names(train) %in% important_var2] -> df_train
+df_trainsss = read.csv('train_data.csv')
+df_train['Class'] = df_trainsss$Class
+
+
+test_df <- test[,names(test) %in% important_var2] 
+df_testsss = read.csv('test_data.csv')
+test_df['Class'] = df_testsss$Class
+
+write.csv(df_train, "df_train.csv")
+write.csv(test_df, "test_df.csv")
+
+
+##############XGBOOST########################
+# library(edgar)
+# library(edgarWebR)
+# library(xgboost)
+# ## set the seed to make your partition reproducible
+# set.seed(123)
+# 
+# ## get train and test
+# train_df <- train[,names(train) %in% important_var2] %>%  as.matrix() 
+# test_df <- test[,names(test) %in% important_var2] %>%  as.matrix() 
+# 
+# ## bring back  train again to get label Class
+# df_trainsss = read.csv('train_data.csv')
+# train.label <- df_train$Class
+# test.label <- test$Class
+# 
+# dtrain <- xgb.DMatrix(data = train_df, label= train.label)
+# dtest <- xgb.DMatrix(data = test_df, label= test.label)
+# 
+# # Train the XGBoost classifer
+# # train a model using our training data
+# model <- xgboost(data = dtrain, # the data   
+#                  nround = 3, # max number of boosting iterations
+#                  objective = "binary:logistic") 
+# 
+# # generate predictions for our held-out testing data
+# pred <- predict(model, dtest)
+# 
+# # get & print the classification error
+# err <- mean(as.numeric(pred > 0.5) != test.label)
+# print(paste("test-error=", err))
