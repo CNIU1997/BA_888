@@ -66,6 +66,7 @@ class(c_pcs)
 c_pcs <- as.data.frame(c_pcs)
 
 ##using 4 conponents
+c_pca2 <- c_pcs[,1:2]
 c_pca4 <- c_pcs[,1:4]
 # c_pca5 <- c_pcs[,1:5]
 
@@ -122,17 +123,18 @@ final_data <- cbind(train1,c_pca2)
 glimpse(final_data)
 
 #
-data_summary<-final_data %>% group_by(cluster) %>% summarise_all(mean) %>% select(-starts_with("PC"))
-final_data2<-final_data %>% select(-starts_with("PC")) %>% group_by(cluster)
+data_summary<-final_data %>% group_by(cluster) %>% summarise_all(mean) %>% dplyr::select(-starts_with("PC"))
+final_data2<-final_data %>% dplyr::select(-starts_with("PC")) %>% group_by(cluster)
 
 
 ## Radar Chart
 #############RadarChart############## 
 data_summary<- final_data %>% 
   group_by(cluster) %>% summarise_all(mean) %>% 
-  select(-starts_with("PC"))%>% as.data.frame() 
+  dplyr::select(-starts_with("PC"))%>% as.data.frame() 
 summary<-summary(data_summary)
-max<- summary[6,1:21]
+dim(summary)
+max<- summary[6,1:16]
 max<-as.numeric(gsub("Max.   :", "", max))
 max
 data_summary <- rbind(max, rep(0,223), data_summary)

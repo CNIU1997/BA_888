@@ -258,6 +258,10 @@ pROC_obj <- roc(df_test$Class,predictions_2,
                 plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
                 print.auc=TRUE, show.thres=TRUE)
 
+sens.ci <- ci.se(pROC_obj)
+plot(sens.ci, type="shape", col="lightblue")
+plot(sens.ci, type="bars")
+
 
 # top 27 features
 # classifier <- glm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+
