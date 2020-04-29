@@ -18,13 +18,41 @@ library(VGAM)
 
 ##
 read_file<- read.csv("train_data.csv")
-
 str(read_file)
 summary(read_file)
+dim(read_file)
+deleted_names<- c('Consolidated_Income',
+                  'EPS_Diluted',
+                  'PB_ratio',
+                  'PTB_ratio',
+                  'Price_to_Sales_Ratio',
+                  'PE_ratio',
+                  'PFCF_ratio',
+                  'POCF_ratio',
+                  'Return_on_Tangible_Assets',
+                  'ROE',
+                  'ROIC',
+                  'Payables_Turnover',
+                  'Inventory_Turnover',
+                  'Days_of_Inventory_on_Hand',
+                  'Days_Payables_Outstanding',
+                  'Debt_to_Assets',
+                  'Debt_to_Equity',
+                  'Interest_Coverage',
+                  'cashFlowCoverageRatios',
+                  'Operating_Cash_Flow_per_Share',
+                  'Free_Cash_Flow_per_Share',
+                  'Cash_per_Share',
+                  'Payout_Ratio',
+                  'EPS_Diluted_Growth',
+                  'Weighted_Average_Shs_Out_(Dil)',
+                  'Weighted_Average_Shares_Diluted_Growth')
+read_file[,!(names(read_file) %in% deleted_names)] -> read_file
+dim(read_file)
 
 ##
-read_file[-c(2,224,226)]<-lapply(read_file[-c(2,224,226)], as.numeric)
-read_file[2]<- lapply(read_file[2],as.character)
+read_file[-c(2,199,201)]<-lapply(read_file[-c(2,199,201)], as.numeric) ## X1, Sector, Class
+read_file[2]<- lapply(read_file[2],as.character)## X1
 classVariables = sapply(read_file, function(x) class(x))
 length(names(which(sapply(read_file, class) == "factor"))) 
 length(names(which(sapply(read_file, class) == "numeric"))) 
@@ -32,7 +60,7 @@ length(names(which(sapply(read_file, class) == "character")))
 
 
 ## Random Forest Method,find a set of predictors that best explains the variance in the response variable.
-df_rf= read_file[-c(1,2,225,227)]
+df_rf= read_file[-c(1,2,200,202)] ## X, X1, PRICE_VAR, year
 cf1 <- cforest(Class ~ . , data= df_rf, control=cforest_unbiased(mtry=2,ntree=50))
 RF_variable_importance<- varimp(cf1) # get variable importance, based on mean decrease in accuracy
 varimp(cf1, conditional=TRUE)  # conditional=True, adjusts for correlations between predictors
@@ -46,7 +74,7 @@ sort(relImportance$lmg, decreasing=TRUE)  # relative importance
 
 
 ##
-read_file[-226][is.na(read_file[-226])] =0
+read_file[-201][is.na(read_file[-201])] =0 #Class
 
 ## wrote an function to graph out missing value
 ggplot_missing<- function(x){
@@ -71,9 +99,10 @@ ggplot_missing(read_file)
 set.seed(888)
 ## It is a binary classification problem with multiple features.
 ## feature selections 
-boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3)# don't even try to run it, take forever
+boruta_stock_train <- Boruta(Class~., data =read_file[-c(1,2,200,202)], doTrace = 3)# don't even try to run it, take forever 
+## X,X1,PRICE_VAR,year
 #
-boruta_stock_train_extra <- Boruta(Class~., data =read_file[-c(1,2,225,227)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
+boruta_stock_train_extra <- Boruta(Class~., data =read_file[-c(1,2,200,202)], doTrace = 3, maxRuns=200)## can do more Runs with maxRuns specified 
 
 #
 print(boruta_stock_train)
@@ -102,18 +131,6 @@ print(boruta_stock_extra)
 ## while the orangered and lightblue boxplots represent Z scores of rejected and confirmed features, respectively. 
 ## As you can see the orangered boxplots have lower Z score than that of maximum Z score of shadow feature which is precisely 
 ## the reason they were put in unimportant category.
-plot(boruta_stock, xlab = "", xaxt = "n",ylab = "Importance: Z-score", ylim=c(-5, 10),
-     main= " Z-score of every feature in the shuffled dataset",
-     col=c("grey","lightblue2","orangered")[as.numeric(boruta_stock$finalDecision)])
-legend("topleft", legend=unique(levels(boruta_stock$finalDecision)), pch=16, col=c("grey","lightblue2","orangered"))
-
-lz<-lapply(1:ncol(boruta_stock$ImpHistory),function(i)
-  boruta_stock$ImpHistory[is.finite(boruta_stock$ImpHistory[,i]),i])
-names(lz) <- colnames(boruta_stock$ImpHistory)
-Labels <- sort(sapply(lz,median))
-axis(side = 1,las=2,labels = names(Labels),
-     at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.8,hadj =0.25)
-
 #
 plot(boruta_stock_extra, xlab = "", xaxt = "n",ylab = "Importance: Z-score", ylim=c(-10, 20),
      main= " Z-score of every feature in the shuffled dataset",
@@ -139,6 +156,7 @@ stock_df_extra <- attStats(boruta_stock_extra)
 ## test the selected variables performance 
 feature_selected <- cbind(variable = rownames(stock_df_extra), stock_df_extra)
 rownames(feature_selected) <- 1:nrow(feature_selected)
+
 feature_selected %>% filter(decision=="Confirmed") %>% arrange(desc(meanImp))%>% filter(meanImp>7)# top27_features
 feature_selected %>% filter(decision=="Confirmed") %>% arrange(desc(meanImp))%>% filter(meanImp>6)# top57_features
 
@@ -146,13 +164,15 @@ feature_selected %>% filter(decision=="Confirmed") %>% arrange(desc(meanImp))%>%
 df_test<- read.csv("test_data.csv")
 glimpse(df_test)
 summary(df_test)
+dim(df_test)
 
 ##Check is there any duplicated columns 
-df_test$niperEBT==df_test$nIperEBT # same columns 
+df_test$niperEBT==df_test$nIperEBT # same columns
 df_test$eBTperEBIT== df_test$ebtperEBIT #Same columns
-df_test$Net_Income_Com== df_test$Net_Income ## Not the same columns 
+df_test$Net_Income_Com== df_test$Net_Income ## Not the same columns
 df_test$ priceToBookRatio== df_test$PB_ratio ## Not the same columns
 df_test$Net_Profit_Margin== df_test$netProfitMargin ## Not the same columns
+df_test[,!(names(df_test) %in% deleted_names)] -> df_test
 
 
 ##Convert Class to a factor (and don't use "0" and "1" as levels) 
@@ -180,18 +200,40 @@ df_test$Class<- factor(df_test$Class, levels=rev(levels(df_test$Class)))
 levels(df_test$Class)
 
 
-#top27 features  accuarcy : 0.6833 
-classifier <- vglm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+
-                    SG.A_to_Revenue+ priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+
-                    Sector+ Gross_Profit_Growth+ EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+
-                    eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+ Net_Income+
-                    Enterprise_Value_over_EBITDA+ Revenue_Growth+ Operating_Cash_Flow_per_Share+ Inventory_Growth+
-                    Earnings_Before_Tax_Margin+ operatingCashFlowPerShare+ priceToOperatingCashFlowsRatio+ POCF_ratio, 
-                  family='multinomial', data =read_file[-c(1,2,225,227)])
+#top28 features  accuarcy : 0.6787 
+classifier <- vglm(Class~nIperEBT+ 
+                     Effect_of_forex_changes_on_cash+ 
+                     Earnings_Yield+ 
+                     effectiveTaxRate+
+                     priceFairValue+
+                     SG.A_to_Revenue+ 
+                     EV_to_Free_cash_flow+
+                     Weighted_Average_Shares_Growth+ 
+                     Gross_Profit_Growth+
+                     Sector+ 
+                     assetTurnover+ 
+                     eBTperEBIT+
+                     Net_Income+
+                     Net_Income_Com+
+                     EV_to_Sales+ 
+                     priceToOperatingCashFlowsRatio+
+                     priceToBookRatio+
+                     priceBookValueRatio+
+                     Enterprise_Value_over_EBITDA+
+                     operatingCashFlowPerShare+
+                     Earnings_Before_Tax_Margin+ 
+                     Revenue_Growth+ 
+                     Profit_Margin+
+                     Inventory_Growth+
+                     Free_Cash_Flow_Yield+
+                     operatingCashFlowSalesRatio+
+                     grossProfitMargin+
+                     Earnings_before_Tax,
+                   family='multinomial', data =read_file[-c(1,2,200,202)])
 
 summary(classifier)
 N_test= nrow(df_test)
-predictions <- predict(classifier,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
+predictions <- predict(classifier,newdata=df_test[-c(1,2,200,202)],type="response")[1:N_test]
 predictions<- round(predictions) %>% as.factor()
 ## reorder the factor level
 predictions<- factor(predictions, levels=rev(levels(predictions)))
@@ -199,19 +241,62 @@ levels(predictions)
 confusionMatrix(factor(predictions),factor(df_test['Class'][1:N_test,]))
 
 
-#top42 features accuarcy : 0.679 (the largetest model vglm with multinomial can handel)
-classifier_1 <- vglm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+ SG.A_to_Revenue+
-                      priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+ Sector+ Gross_Profit_Growth+
-                      EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+ eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+
-                      Net_Income+ Enterprise_Value_over_EBITDA+ Revenue_Growth+ Operating_Cash_Flow_per_Share+ Inventory_Growth+
-                      Earnings_Before_Tax_Margin+ operatingCashFlowPerShare+ priceToOperatingCashFlowsRatio+ POCF_ratio+
-                      Free_Cash_Flow_Yield+ Consolidated_Income+ Profit_Margin+ priceToBookRatio+ PB_ratio+ priceBookValueRatio+
-                      PTB_ratio+ Earnings_before_Tax+ operatingCashFlowSalesRatio+ enterpriseValueMultiple+ grossProfitMargin+
-                      Net_Profit_Margin+ netProfitMargin+ Gross_Margin+ Net_Income_per_Share+ EBIT_Margin+ eBITperRevenue+
-                      Graham_Number,
-                    family='multinomial', data =read_file[-c(1,2,225,227)])
+#top51 features accuarcy : 0.5244 (the largetest model vglm with multinomial can handel)
+classifier_1 <- vglm(Class~nIperEBT+ 
+                       Effect_of_forex_changes_on_cash+ 
+                       Earnings_Yield+ 
+                       effectiveTaxRate+
+                       priceFairValue+
+                       SG.A_to_Revenue+ 
+                       EV_to_Free_cash_flow+
+                       Weighted_Average_Shares_Growth+ 
+                       Gross_Profit_Growth+
+                       Sector+ 
+                       assetTurnover+ 
+                       eBTperEBIT+
+                       Net_Income+
+                       Net_Income_Com+
+                       EV_to_Sales+ 
+                       priceToOperatingCashFlowsRatio+
+                       priceToBookRatio+
+                       priceBookValueRatio+
+                       Enterprise_Value_over_EBITDA+
+                       operatingCashFlowPerShare+
+                       Earnings_Before_Tax_Margin+ 
+                       Revenue_Growth+ 
+                       Profit_Margin+
+                       Inventory_Growth+
+                       Free_Cash_Flow_Yield+
+                       operatingCashFlowSalesRatio+
+                       grossProfitMargin+
+                       Earnings_before_Tax+
+                       enterpriseValueMultiple+
+                       Gross_Margin+
+                       Net_Income_per_Share+
+                       priceSalesRatio+
+                       Net_Profit_Margin+
+                       netProfitMargin+
+                       EBIT_Margin+
+                       EBIT+
+                       Operating_Cash_Flow+
+                       eBITperRevenue+
+                       Free_Cash_Flow_margin+
+                       Income_Quality+
+                       pretaxProfitMargin+
+                       EBITDA_Margin+
+                       Graham_Number+
+                       dividendpaidAndCapexCoverageRatios+
+                       Total_non.current_assets+
+                       Free_Cash_Flow+
+                       returnOnEquity+
+                       Book_Value_per_Share_Growth+
+                       Receivables_Turnover+
+                       dividendYield+
+                       Current_ratio+
+                       Operating_Income,
+                    family='multinomial', data =read_file[-c(1,2,200,202)])
 summary(classifier_1)
-predictions_1 <- predict(classifier_1,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
+predictions_1 <- predict(classifier_1,newdata=df_test[-c(1,2,200,202)],type="response")[1:N_test]
 predictions_1<- round(predictions_1) %>% as.factor()
 ## reorder the factor level
 predictions_1<- factor(predictions_1, levels=rev(levels(predictions_1)))
@@ -219,18 +304,53 @@ levels(predictions_1)
 confusionMatrix(predictions_1,df_test['Class'][1:N_test,])
 
 ## The most accuarte model so far
-## Accuracy : 0.6849 
-## from PTB_ratio to Profit_Margin accuracy stays the same
-classifier_2 <- vglm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+
-                       SG.A_to_Revenue+ priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+
-                       Sector+ Gross_Profit_Growth+ EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+
-                       eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+ Net_Income+
-                       Enterprise_Value_over_EBITDA+ Revenue_Growth+ Operating_Cash_Flow_per_Share+ Inventory_Growth+
-                       Earnings_Before_Tax_Margin+ operatingCashFlowPerShare+ priceToOperatingCashFlowsRatio+ POCF_ratio+
-                       Free_Cash_Flow_Yield+ Consolidated_Income+ Profit_Margin+ priceToBookRatio+ PB_ratio+ priceBookValueRatio+ PTB_ratio,
-                     family='multinomial', data =read_file[-c(1,2,225,227)])
+## Accuracy :0.6944
+## From EBITDA_Margin to dividendpaidAndCapexCoverageRatios stays the same accuarcy
+classifier_2 <- vglm(Class~nIperEBT+ 
+                       Effect_of_forex_changes_on_cash+ 
+                       Earnings_Yield+ 
+                       effectiveTaxRate+
+                       priceFairValue+
+                       SG.A_to_Revenue+ 
+                       EV_to_Free_cash_flow+
+                       Weighted_Average_Shares_Growth+ 
+                       Gross_Profit_Growth+
+                       Sector+ 
+                       assetTurnover+ 
+                       eBTperEBIT+
+                       Net_Income+
+                       Net_Income_Com+
+                       EV_to_Sales+ 
+                       priceToOperatingCashFlowsRatio+
+                       priceToBookRatio+
+                       priceBookValueRatio+
+                       Enterprise_Value_over_EBITDA+
+                       operatingCashFlowPerShare+
+                       Earnings_Before_Tax_Margin+ 
+                       Revenue_Growth+ 
+                       Profit_Margin+
+                       Inventory_Growth+
+                       Free_Cash_Flow_Yield+
+                       operatingCashFlowSalesRatio+
+                       grossProfitMargin+
+                       Earnings_before_Tax+
+                       enterpriseValueMultiple+
+                       Gross_Margin+
+                       Net_Income_per_Share+
+                       priceSalesRatio+
+                       Net_Profit_Margin+
+                       netProfitMargin+
+                       EBIT_Margin+
+                       EBIT+
+                       Operating_Cash_Flow+
+                       eBITperRevenue+
+                       Free_Cash_Flow_margin+
+                       Income_Quality+
+                       pretaxProfitMargin+
+                       EBITDA_Margin,
+                     family='multinomial', data =read_file[-c(1,2,200,202)])
 summary(classifier_2)
-predictions_2 <- predict(classifier_2,newdata=df_test[-c(1,2,225,227)],type="response")[1:N_test]
+predictions_2 <- predict(classifier_2,newdata=df_test[-c(1,2,200,202)],type="response")[1:N_test]
 predictions_2<- round(predictions_2) %>% as.factor()
 ## reorder the factor level
 predictions_2<- factor(predictions_2, levels=rev(levels(predictions_2)))
@@ -238,11 +358,13 @@ levels(predictions_2)
 confusionMatrix(predictions_2,df_test['Class'][1:N_test,])
 
 ## save results in the environment
-# save.image(file='Boruta_feature_selection_results_version1.RData')
+## save.image(file='Boruta_feature_selection_results_version1.RData')
+save.image(file='Boruta_feature_selection_results_version2.RData')
 ## check if its in the current dictory
 dir()
 ## load pervious saved results
-load('Boruta_feature_selection_results_version1.RData')
+## load('Boruta_feature_selection_results_version1.RData')
+load('Boruta_feature_selection_results_version2.RData')
 
 
 
@@ -259,37 +381,20 @@ pROC_obj <- roc(df_test$Class,predictions_2,
                 print.auc=TRUE, show.thres=TRUE)
 
 sens.ci <- ci.se(pROC_obj)
+## title: "Area under the receiver operating characteristic curve (AUC)"
 plot(sens.ci, type="shape", col="lightblue")
 plot(sens.ci, type="bars")
 
 
-# top 27 features
-# classifier <- glm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+
-#                     SG.A_to_Revenue+ priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+
-#                     Sector+ Gross_Profit_Growth+ EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+
-#                     eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+ Net_Income+
-#                     Enterprise_Value_over_EBITDA+ Revenue_Growth+ Operating_Cash_Flow_per_Share+ Inventory_Growth+
-#                     Earnings_Before_Tax_Margin+ operatingCashFlowPerShare+ priceToOperatingCashFlowsRatio+ POCF_ratio, 
-#                   family='binomial', data =read_file[-c(1,2,225,227)])
-
-#top57 features accuarcy: : 0.5162  
-# classifier_1 <- glm(Class~niperEBT+ Effect_of_forex_changes_on_cash+ Earnings_Yield+ effectiveTaxRate+ SG.A_to_Revenue+
-#                      priceFairValue+ Weighted_Average_Shares_Diluted_Growth+ EV_to_Free_cash_flow+ Sector+ Gross_Profit_Growth+
-#                      EV_to_Operating_cash_flow+ Weighted_Average_Shares_Growth+ eBTperEBIT+ assetTurnover+ EV_to_Sales+ Net_Income_Com+
-#                      Net_Income+ Enterprise_Value_over_EBITDA+ Revenue_Growth+ Operating_Cash_Flow_per_Share+ Inventory_Growth+
-#                      Earnings_Before_Tax_Margin+ operatingCashFlowPerShare+ priceToOperatingCashFlowsRatio+ POCF_ratio+
-#                      Free_Cash_Flow_Yield+ Consolidated_Income+ Profit_Margin+ priceToBookRatio+ PB_ratio+ priceBookValueRatio+
-#                      PTB_ratio+ Earnings_before_Tax+ operatingCashFlowSalesRatio+ enterpriseValueMultiple+ grossProfitMargin+
-#                      Net_Profit_Margin+ netProfitMargin+ Gross_Margin+ Net_Income_per_Share+ EBIT_Margin+ eBITperRevenue+
-#                      Graham_Number+ ebitperRevenue+ priceSalesRatio+ EBIT+ pretaxProfitMargin+ Operating_Cash_Flow+
-#                      Total_non.current_assets+ Free_Cash_Flow_margin+ EBITDA+ Income_Quality+EBITDA_Margin+
-#                      Book_Value_per_Share_Growth+ dividendpaidAndCapexCoverageRatios,
-#                    family='binomial', data =read_file[-c(1,2,225,227)])
-
-
-#df_test$Class<- revalue(df_test$Class, c("1"="Buy", "0"="Not Buy"))
-#predictions<- revalue(predictions, c("1"="Buy", "0"="Not Buy"))
-
-
-
+# plot(boruta_stock, xlab = "", xaxt = "n",ylab = "Importance: Z-score", ylim=c(-5, 10),
+#      main= " Z-score of every feature in the shuffled dataset",
+#      col=c("grey","lightblue2","orangered")[as.numeric(boruta_stock$finalDecision)])
+# legend("topleft", legend=unique(levels(boruta_stock$finalDecision)), pch=16, col=c("grey","lightblue2","orangered"))
+# 
+# lz<-lapply(1:ncol(boruta_stock$ImpHistory),function(i)
+#   boruta_stock$ImpHistory[is.finite(boruta_stock$ImpHistory[,i]),i])
+# names(lz) <- colnames(boruta_stock$ImpHistory)
+# Labels <- sort(sapply(lz,median))
+# axis(side = 1,las=2,labels = names(Labels),
+#      at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.8,hadj =0.25)
 
