@@ -105,21 +105,6 @@ upper[upper.tri(mcor)]<-""
 upper<-as.data.frame(upper)
 upper
 
-upper<-tmp
-upper[upper.tri(tmp)]<-""
-upper<-as.data.frame(upper)
-upper
-dim(upper)
-
-##
-tmp = mcor # Copy matrix
-tmp[ tmp < -0.2 | tmp > 0.2 ] = 0
-corrplot.mixed(tmp,lower = "circle", upper = "number",tl.pos = "lt",order="hclust",
-               addgrid.col = "black", pch.col="black",
-               lower.col = brewer.pal(n=9, name="Blues"),upper.col = brewer.pal(n=9, name="Blues"), 
-               tl.cex=1, number.cex=0.5,tl.col="black",tl.srt=45,na.label = "NA")
-
-
 ## import dataset for crosstab
 eda<- read_csv("train_data.csv")
 # glimpse(eda)
