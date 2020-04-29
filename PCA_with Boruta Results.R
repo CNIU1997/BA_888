@@ -10,37 +10,6 @@ library(cluster)
 library(radarchart)
 library(fmsb)
 library(grDevices)
-# 'niperEBT',
-# 'Effect_of_forex_changes_on_cash',
-# 'Earnings_Yield',
-# 'effectiveTaxRate',
-# 'SG.A_to_Revenue',
-# 'priceFairValue',
-# 'Weighted_Average_Shares_Diluted_Growth',
-# 'EV_to_Free_cash_flow',
-# 'Gross_Profit_Growth',
-# 'EV_to_Operating_cash_flow',
-# 'Weighted_Average_Shares_Growth',
-# 'eBTperEBIT', 
-# 'assetTurnover',
-# 'EV_to_Sales',
-# 'Net_Income_Com',
-# 'Net_Income',
-# 'Enterprise_Value_over_EBITDA',
-# 'Revenue_Growth',
-# 'Operating_Cash_Flow_per_Share'
-# 'Inventory_Growth'
-# 'Earnings_Before_Tax_Margin',
-# 'operatingCashFlowPerShare', 
-# 'priceToOperatingCashFlowsRatio', 
-# 'POCF_ratio',
-# 'Free_Cash_Flow_Yield',
-# 'Consolidated_Income',
-# 'Profit_Margin',
-# 'priceToBookRatio',
-# 'PB_ratio',
-# 'priceBookValueRatio',
-# 'PTB_ratio'
 
 
 # load the data
@@ -49,37 +18,48 @@ dim(train)
 train<- na.omit(train)
 
 #Remove Redundant Features
-select_names <- c('niperEBT',
-                  'Effect_of_forex_changes_on_cash',
-                  'Earnings_Yield',
+select_names <- c('nIperEBT', 
+                  'Effect_of_forex_changes_on_cash', 
+                  'Earnings_Yield', 
                   'effectiveTaxRate',
-                  'SG.A_to_Revenue',
                   'priceFairValue',
-                  'Weighted_Average_Shares_Diluted_Growth',
+                  'SG.A_to_Revenue', 
                   'EV_to_Free_cash_flow',
+                  'Weighted_Average_Shares_Growth', 
                   'Gross_Profit_Growth',
-                  'EV_to_Operating_cash_flow',
-                  'Weighted_Average_Shares_Growth',
-                  'eBTperEBIT', 
-                  'assetTurnover',
-                  'EV_to_Sales',
-                  'Net_Income_Com',
+                  'assetTurnover', 
+                  'eBTperEBIT',
                   'Net_Income',
-                  'Enterprise_Value_over_EBITDA',
-                  'Revenue_Growth',
-                  'Operating_Cash_Flow_per_Share',
-                  'Inventory_Growth',
-                  'Earnings_Before_Tax_Margin',
-                  'operatingCashFlowPerShare', 
-                  'priceToOperatingCashFlowsRatio', 
-                  'POCF_ratio',
-                  'Free_Cash_Flow_Yield',
-                  'Consolidated_Income',
-                  'Profit_Margin',
+                  'Net_Income_Com',
+                  'EV_to_Sales',
+                  'priceToOperatingCashFlowsRatio',
                   'priceToBookRatio',
-                  'PB_ratio',
                   'priceBookValueRatio',
-                  'PTB_ratio')
+                  'Enterprise_Value_over_EBITDA',
+                  'operatingCashFlowPerShare',
+                  'Earnings_Before_Tax_Margin', 
+                  'Revenue_Growth', 
+                  'Profit_Margin',
+                  'Inventory_Growth',
+                  'Free_Cash_Flow_Yield',
+                  'operatingCashFlowSalesRatio',
+                  'grossProfitMargin',
+                  'Earnings_before_Tax',
+                  'enterpriseValueMultiple',
+                  'Gross_Margin',
+                  'Net_Income_per_Share',
+                  'priceSalesRatio',
+                  'Net_Profit_Margin',
+                  'netProfitMargin',
+                  'EBIT_Margin',
+                  'EBIT',
+                  'Operating_Cash_Flow',
+                  'eBITperRevenue',
+                  'Free_Cash_Flow_margin',
+                  'Income_Quality',
+                  'pretaxProfitMargin',
+                  'EBITDA_Margin')
+## 'Sector' excluded
 
 train[,names(train) %in% select_names] -> select_data
 select_data[] <- lapply(select_data, function(x) as.numeric(as.character(x)))
@@ -103,12 +83,13 @@ class(c_pcs)
 c_pcs <- as.data.frame(c_pcs)
 
 ##using 6 conponents
-c_pca2 <- c_pcs[,1:2]
-c_pca6 <- c_pcs[,1:6]
+c_pca4 <- c_pcs[,1:4]
+#c_pca2 <- c_pcs[,1:2]
+#c_pca6 <- c_pcs[,1:6]
 # c_pca5 <- c_pcs[,1:5]
 
-#k-mean using pca(6)
-c_scale <- scale(c_pca6)
+#k-mean using pca(4)
+c_scale <- scale(c_pca4)
 
 #eval numer of k using silhouette and wss
 fviz_nbclust(c_scale, kmeans, method = 'wss', k.max = 10)
@@ -201,3 +182,47 @@ radarchart(cluster_2,
            #custom labels
            vlcex=0.8 
 )
+
+
+#   nIperEBT+ 
+#   Effect_of_forex_changes_on_cash+ 
+#   Earnings_Yield+ 
+#   effectiveTaxRate+
+#   priceFairValue+
+#   SG.A_to_Revenue+ 
+#   EV_to_Free_cash_flow+
+#   Weighted_Average_Shares_Growth+ 
+#   Gross_Profit_Growth+
+#   Sector+ 
+#   assetTurnover+ 
+#   eBTperEBIT+
+#   Net_Income+
+#   Net_Income_Com+
+#   EV_to_Sales+ 
+#   priceToOperatingCashFlowsRatio+
+#   priceToBookRatio+
+#   priceBookValueRatio+
+#   Enterprise_Value_over_EBITDA+
+#   operatingCashFlowPerShare+
+#   Earnings_Before_Tax_Margin+ 
+#   Revenue_Growth+ 
+#   Profit_Margin+
+#   Inventory_Growth+
+#   Free_Cash_Flow_Yield+
+#   operatingCashFlowSalesRatio+
+#   grossProfitMargin+
+#   Earnings_before_Tax+
+#   enterpriseValueMultiple+
+#   Gross_Margin+
+#   Net_Income_per_Share+
+#   priceSalesRatio+
+#   Net_Profit_Margin+
+#   netProfitMargin+
+#   EBIT_Margin+
+#   EBIT+
+#   Operating_Cash_Flow+
+#   eBITperRevenue+
+#   Free_Cash_Flow_margin+
+#   Income_Quality+
+#   pretaxProfitMargin+
+#   EBITDA_Margin
