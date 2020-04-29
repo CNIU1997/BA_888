@@ -304,8 +304,8 @@ levels(predictions_1)
 confusionMatrix(predictions_1,df_test['Class'][1:N_test,])
 
 ## The most accuarte model so far
-## Accuracy :0.6944(From EBITDA_Margin until dividendpaidAndCapexCoverageRatios)
-## from PTB_ratio to Profit_Margin accuracy stays the same
+## Accuracy :0.6944
+## From EBITDA_Margin to dividendpaidAndCapexCoverageRatios stays the same accuarcy
 classifier_2 <- vglm(Class~nIperEBT+ 
                        Effect_of_forex_changes_on_cash+ 
                        Earnings_Yield+ 
