@@ -16,6 +16,7 @@ library(plyr)
 library(caret)
 library(VGAM)
 library(tidyverse)
+library(varImp)
 
 ##
 read_file<- read.csv("train_data.csv")
@@ -58,21 +59,6 @@ classVariables = sapply(read_file, function(x) class(x))
 length(names(which(sapply(read_file, class) == "factor"))) 
 length(names(which(sapply(read_file, class) == "numeric"))) 
 length(names(which(sapply(read_file, class) == "character"))) 
-
-
-## Random Forest Method,find a set of predictors that best explains the variance in the response variable.
-df_rf= read_file[-c(1,2,200,202)] ## X, X1, PRICE_VAR, year
-cf1 <- cforest(Class ~ . , data= df_rf, control=cforest_unbiased(mtry=2,ntree=50))
-RF_variable_importance<- varimp(cf1) # get variable importance, based on mean decrease in accuracy
-varimp(cf1, conditional=TRUE)  # conditional=True, adjusts for correlations between predictors
-varimpAUC(cf1)  # more robust towards class imbalance.
-
-## Relative Importance, the relative importance of variables fed into a lm model can be determined as a relative percentage.
-lmMod <- lm(Class ~ . , data = df_rf)  # fit lm() model
-relImportance <- calc.relimp(lmMod, type = "lmg", rela = TRUE)  # calculate relative importance scaled to 100
-sort(relImportance$lmg, decreasing=TRUE)  # relative importance
-
-
 
 ##
 read_file[-201][is.na(read_file[-201])] =0 #Class
@@ -397,6 +383,8 @@ plot(sens.ci, type="bars")
 # axis(side = 1,las=2,labels = names(Labels),
 #      at = 1:ncol(boruta_stock$ImpHistory), cex.axis = 0.8,hadj =0.25)
 
+
+
 ##Radar Chart
 select_names <- c('nIperEBT', 
                   'Effect_of_forex_changes_on_cash', 
@@ -447,27 +435,60 @@ rename_list_2<- colnames(select_data[1:41])
 
 ## Radar Chart
 #############RadarChart############## 
-data_summary<-select_data %>% group_by(Class) %>% summarise_all(list(max, min, mean))%>% as.data.frame() 
+data_summary<-select_data %>% group_by(Class) %>% summarise_all(list(max, min, mean)) %>%  as.data.frame() 
 dim(data_summary)
 max<- data_summary[,1:42]
+max<- apply(max, 2, max) %>% t()%>% as.data.frame()
 max <- setNames(max, rename_list)
-max_1<- max[1,2:42]
-max_0<- max[2,2:42]
+max<- max[,2:42]
+# max_1<- max[1,2:42]
+# max_0<- max[2,2:42]
 min<- data_summary[,43:83]
+min<- apply(min, 2, min) %>% t()%>% as.data.frame()
 min <- setNames(min, rename_list_2)
-min_1<- min[1,1:41]
-min_0<- min[2,1:41]
+# min_1<- min[1,1:41]
+# min_0<- min[2,1:41]
 mean<- data_summary[,84:124]
 mean <- setNames(mean, rename_list_2)
 mean_1<- mean[1,1:41]
 mean_0<- mean[2,1:41]
-data_summary_1<- rbind(max_1,min_1,mean_1)
-data_summary_0<- rbind(max_0,min_0,mean_0)
+data_summary_1<- rbind(max,min,mean_1)
+data_summary_0<- rbind(max,min,mean_0)
+data_summary_1 = as.data.frame(sapply(data_summary_1, as.numeric))
+data_summary_0 = as.data.frame(sapply(data_summary_0, as.numeric))
+
 data_summary_1_normalized<- BBmisc::normalize(data_summary_1, method = "standardize", range = c(0, 1)) 
 data_summary_0_normalized<- BBmisc::normalize(data_summary_0, method = "standardize", range = c(0, 1))
+data_summary_1_scaled<- base::scale(data_summary_1) %>% as.data.frame()
+data_summary_0_scaled<- base::scale(data_summary_0) %>% as.data.frame()
 
 
 ###############
+
+op <- par(mar=c(10, 6, 10, 6),mfrow=c(1, 2))
+#cluster_1: Class=1
+radarchart(data_summary_1, 
+           pcol=rgb(0.1,0.4,0.7,0.9),
+           pfcol=rgb(0.1,0.8,1,0.5),
+           #custom the grid
+           cglcol="grey", cglty=5, axislabcol="grey",caxislabels=seq(0,20000,100), cglwd=0.8,
+           #custom labels
+           vlcex=0.8,
+           title="Class 1 Radar Chart"
+)
+
+
+#cluster_2: Class=0
+radarchart(data_summary_0, 
+           pcol=rgb(0.1,0.4,0.7,0.9),
+           pfcol=rgb(0.1,0.8,1,0.5),
+           #custom the grid
+           cglcol="grey", cglty=1, axislabcol="grey", cglwd=0.8,
+           #custom labels
+           vlcex=0.8,
+           title="Class 0 Radar Chart"
+)
+
 
 op <- par(mar=c(12, 5, 12, 5),mfrow=c(1, 2))
 #cluster_1: Class=1
@@ -478,8 +499,9 @@ radarchart(data_summary_1_normalized,
            cglcol="grey", cglty=5, axislabcol="grey", caxislabels=seq(0,1,0.5), cglwd=0.8,
            #custom labels
            vlcex=0.8,
-           title="Class 1 Radar Chart"
+           title="Class 1 Radar Chart normalized"
 )
+
 
 #cluster_2: Class=0
 radarchart(data_summary_0_normalized, 
@@ -489,7 +511,70 @@ radarchart(data_summary_0_normalized,
            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,20,5), cglwd=0.8,
            #custom labels
            vlcex=0.8,
-           title="Class 0 Radar Chart"
+           title="Class 0 Radar Chart normalized"
 )
 
 
+
+
+## scaled radar chart
+#op <- par(mar=c(12, 5, 12, 5),mfrow=c(1, 2))
+# radarchart(data_summary_1_scaled, 
+#            pcol=rgb(0.1,0.4,0.7,0.9),
+#            pfcol=rgb(0.1,0.8,1,0.5),
+#            #custom the grid
+#            cglcol="grey", cglty=5, axislabcol="grey", caxislabels=seq(0,1,0.5), cglwd=0.8,
+#            #custom labels
+#            vlcex=0.8,
+#            title="Class 1 Radar Chart scaled"
+# )
+# radarchart(data_summary_0_scaled, 
+#            pcol=rgb(0.1,0.4,0.7,0.9),
+#            pfcol=rgb(0.1,0.8,1,0.5),
+#            #custom the grid
+#            cglcol="grey", cglty=5, axislabcol="grey", caxislabels=seq(0,1,0.5), cglwd=0.8,
+#            #custom labels
+#            vlcex=0.8,
+#            title="Class 0 Radar Chart scaled"
+# )
+
+
+# ## Random Forest Method,find a set of predictors that best explains the variance in the response variable.
+# cf1 <- cforest(Class~nIperEBT+ 
+#                  Effect_of_forex_changes_on_cash+ 
+#                  Earnings_Yield+ 
+#                  effectiveTaxRate+
+#                  priceFairValue+
+#                  SG.A_to_Revenue+ 
+#                  EV_to_Free_cash_flow+
+#                  Weighted_Average_Shares_Growth+ 
+#                  Gross_Profit_Growth+
+#                  Sector+ 
+#                  assetTurnover+ 
+#                  eBTperEBIT+
+#                  Net_Income+
+#                  Net_Income_Com+
+#                  EV_to_Sales+ 
+#                  priceToOperatingCashFlowsRatio+
+#                  priceToBookRatio+
+#                  priceBookValueRatio+
+#                  Enterprise_Value_over_EBITDA+
+#                  operatingCashFlowPerShare+
+#                  Earnings_Before_Tax_Margin+ 
+#                  Revenue_Growth+ 
+#                  Profit_Margin+
+#                  Inventory_Growth+
+#                  Free_Cash_Flow_Yield+
+#                  operatingCashFlowSalesRatio+
+#                  grossProfitMargin+
+#                  Earnings_before_Tax,
+#                data= read_file[-c(1,2,200,202)],  ## X, X1, PRICE_VAR, year
+#                control=cforest_unbiased(mtry=2,ntree=50))
+# RF_variable_importance<- varimp(cf1) # get variable importance, based on mean decrease in accuracy
+# varimp(cf1, conditional=TRUE)  # conditional=True, adjusts for correlations between predictors
+# varimpAUC(cf1)  # more robust towards class imbalance.
+# 
+# ## Relative Importance, the relative importance of variables fed into a lm model can be determined as a relative percentage.
+# lmMod <- lm(Class ~ . , data = df_rf)  # fit lm() model
+# relImportance <- calc.relimp(lmMod, type = "lmg", rela = TRUE)  # calculate relative importance scaled to 100
+# sort(relImportance$lmg, decreasing=TRUE)  # relative importance
